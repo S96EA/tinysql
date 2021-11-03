@@ -940,6 +940,8 @@ import (
 	Year			"{YEAR|SQL_TSI_YEAR}"
 	OuterOpt		"optional OUTER clause"
 	CrossOpt		"Cross join option"
+	LeftOpt			"Left Join option"
+	RightOpt 		"Right Join option"
 	ShowIndexKwd		"Show index/indexs/key keyword"
 	DistinctKwd		"DISTINCT/DISTINCTROW keyword"
 	FromOrIn		"From or In"
@@ -3809,7 +3811,17 @@ JoinTable:
 	{
 		$$ = &ast.Join{Left: $1.(ast.ResultSetNode), Right: $3.(ast.ResultSetNode), Tp: ast.CrossJoin}
 	}
-	/* Your code here. */
+|	TableRef LeftOpt TableRef "ON" Expression
+	{
+		on := &ast.OnCondition{Expr: $5}
+		$$ = &ast.Join{Left: $1.(ast.ResultSetNode), Right: $3.(ast.ResultSetNode), Tp: ast.LeftJoin, On: on}
+	}
+
+|	TableRef RightOpt TableRef "ON" Expression
+	{
+		on := &ast.OnCondition{Expr: $5}
+		$$ = &ast.Join{Left: $1.(ast.ResultSetNode), Right: $3.(ast.ResultSetNode), Tp: ast.RightJoin, On: on}
+	}
 
 JoinType:
 	"LEFT"
@@ -3828,6 +3840,12 @@ OuterOpt:
 CrossOpt:
 	"JOIN"
 |	"INNER" "JOIN"
+
+LeftOpt:
+	"LEFT" "JOIN"
+
+RightOpt:
+	"RIGHT" "JOIN"
 
 
 LimitClause:
